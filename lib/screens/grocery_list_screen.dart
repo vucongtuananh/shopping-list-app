@@ -16,8 +16,15 @@ class GroceryListItem extends StatefulWidget {
 class _GroceryListItemState extends State<GroceryListItem> {
   List<GroceryItem> _groceries = [];
   bool _loading = true;
-  void _addItem() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const AddItem()));
+  void _addItem() async {
+    final newData = await Navigator.push<GroceryItem>(
+      context,
+      MaterialPageRoute(builder: (context) => const AddItem()),
+    );
+    if (newData == null) return;
+    setState(() {
+      _groceries.add(newData);
+    });
   }
 
   @override
@@ -29,13 +36,12 @@ class _GroceryListItemState extends State<GroceryListItem> {
   void _loadItem() async {
     var url = Uri.https("test-for-list-app-default-rtdb.firebaseio.com", "/app.json");
     final response = await http.get(url);
-    print(response.body);
 
-    final Map<String, Map<String, dynamic>> listResponse = json.decode(response.body);
+    final Map<String, dynamic> listResponse = json.decode(response.body);
     List<GroceryItem> listCategories = [];
     for (var item in listResponse.entries) {
       final Category category = categories.entries.firstWhere((e) => e.value.title == item.value["category"]).value;
-      listCategories.add(GroceryItem(id: item.key, name: item.value["category"], quantity: item.value["quantity"], category: category));
+      listCategories.add(GroceryItem(id: item.key, name: item.value["name"], quantity: int.parse(item.value["quantity"]), category: category));
     }
     setState(() {
       _groceries = listCategories;
@@ -69,6 +75,7 @@ class _GroceryListItemState extends State<GroceryListItem> {
                 height: 12,
                 color: _groceries[index].category.color,
               ),
+              subtitle: Text(_groceries[index].category.title),
               title: Text(_groceries[index].name),
               trailing: Text(_groceries[index].quantity.toString()),
             ),

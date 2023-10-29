@@ -4,6 +4,8 @@ import 'package:shopping_list_app/data/categories.dart';
 import 'package:shopping_list_app/models/category.dart';
 import 'dart:convert';
 
+import 'package:shopping_list_app/models/grocery_item.dart';
+
 class AddItem extends StatefulWidget {
   const AddItem({super.key});
 
@@ -16,7 +18,7 @@ class _AddItemState extends State<AddItem> {
 
   var _quantity = 1;
 
-  var _category = categories[Categories.vegetables];
+  var _category = categories[Categories.vegetables]!;
 
   var _formKey = GlobalKey<FormState>();
 
@@ -31,8 +33,12 @@ class _AddItemState extends State<AddItem> {
             "category": _category!.title,
           }),
           headers: {'Content': 'application'});
-
-      var _groceryDataId = response;
+      var resBody = json.decode(response.body);
+      print(resBody);
+      if (!context.mounted) {
+        return;
+      }
+      Navigator.pop(context, GroceryItem(id: resBody['name'], name: _name, quantity: _quantity, category: _category));
     }
   }
 
@@ -103,7 +109,7 @@ class _AddItemState extends State<AddItem> {
                             ))
                     ],
                     onChanged: (value) {
-                      _category = value;
+                      _category = value!;
                     },
                   )),
                 ],
